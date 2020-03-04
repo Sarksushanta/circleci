@@ -1,13 +1,23 @@
 version: 2.1
-orbs:
-  node: circleci/node@1.1.6
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build:
+    working_directory: ~/test
+    docker: 
+      - image: circleci/node:10.14.2
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: npm test
+      - run:
+          name: update-npm
+          command: 'sudo npm install -g npm@6.4.1'
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}    
+      - run:
+          name: npm-install-wee
+          command: npm install
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}  
+          paths:
+            - ./node_modules
+      - run:
+          name: test
+          command: npm test
